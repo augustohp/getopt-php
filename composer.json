@@ -24,5 +24,10 @@
         "psr-4": {
             "tflori\\Getopt\\": "src"
         }
+    },
+    "scripts": {
+        "test": [
+            "phpunit test"
+        ]
     }
 }
