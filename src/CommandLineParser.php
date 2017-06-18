@@ -40,10 +40,12 @@ class CommandLineParser
             if (empty($arg)) {
                 continue;
             }
-            if (($arg === '--') || ($arg === '-') || (mb_substr($arg, 0, 1) !== '-')){
+            if (mb_substr($arg, 0, 1) !== '-') {
+                continue;
+            }
+            if (($arg === '--') || ($arg === '-')) {
                 // no more options, treat the remaining arguments as operands
-                $firstOperandIndex = ($arg == '--') ? $i + 1 : $i;
-                $operands = array_slice($arguments, $firstOperandIndex);
+                $operands = array_slice($arguments, $i +1);
                 break;
             }
             if (mb_substr($arg, 0, 2) == '--') {

@@ -68,10 +68,16 @@ class GetoptTest extends \PHPUnit_Framework_TestCase
         $getopt->addOptions(array(
             array('a', null, Getopt::NO_ARGUMENT)
         ));
-        $getopt->parse('-a foo');
+        $getopt->parse('-a no-expected');
 
         $this->assertEquals(1, $getopt->getOption('a'));
-        $this->assertEquals('foo', $getopt->getOperand(0));
+        $operands = $getopt->getOperands();
+        $this->assertEmpty(
+            $operands,
+            'Operands are only considered after "-" or "--".' .
+            'The option "a" accepts no argument as well, overwritting the previous' .
+            'definition. "no-expected" is ignored.'
+        );
     }
 
     public function testAddOptionsFailsOnConflict()
@@ -96,18 +102,19 @@ class GetoptTest extends \PHPUnit_Framework_TestCase
 
     public function testAccessMethods()
     {
-        $getopt = new Getopt('a');
-        $getopt->parse('-a foo');
+        $getopt = new Getopt('v');
+        $getopt->parse('-v foo');
 
         $options = $getopt->getOptions();
         $this->assertCount(1, $options);
-        $this->assertEquals(1, $options['a']);
-        $this->assertEquals(1, $getopt->getOption('a'));
+        $this->assertEquals(1, $options['v']);
+        $this->assertEquals(1, $getopt->getOption('v'));
 
         $operands = $getopt->getOperands();
-        $this->assertCount(1, $operands);
-        $this->assertEquals('foo', $operands[0]);
-        $this->assertEquals('foo', $getopt->getOperand(0));
+        $this->assertEmpty(
+            $operands,
+            'Operands are passed after "-" or "--", none passed.'
+        );
     }
 
     public function testCountable()
@@ -195,7 +202,7 @@ class GetoptTest extends \PHPUnit_Framework_TestCase
     public function testHelpTextWithCustomBanner()
     {
         $script = $_SERVER['PHP_SELF'];
-        
+
         $getopt = new Getopt();
         $getopt->setBanner("My custom Banner %s\n");
         $this->assertSame("My custom Banner \n", $getopt->getHelpText());

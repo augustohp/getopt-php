@@ -7,13 +7,45 @@ class CommandLineParserTest extends \PHPUnit_Framework_TestCase
     public function testParseNoOptions()
     {
         $parser = new CommandLineParser(array(
-            new Option('a', null)
+            new Option('v', null)
         ));
-        $parser->parse('something');
-        $this->assertCount(0, $parser->getOptions());
+        $parser->parse('some-command');
+        $this->assertCount(
+            0,
+            $parser->getOptions(),
+            'No options should be identified because no valid ones were passed.'
+        );
+
         $operands = $parser->getOperands();
-        $this->assertCount(1, $operands);
-        $this->assertEquals('something', $operands[0]);
+        $this->assertCount(
+            0,
+            $operands,
+            'Operands are only identified after a - or --. None passed.'
+        );
+    }
+
+    public function testParseNoOptionsWithAnOperandAfterDoubleDashes()
+    {
+        $parser = new CommandLineParser(array(
+            new Option('v', null)
+        ));
+        $parser->parse('some-command -- an-operand');
+        $this->assertCount(
+            0,
+            $parser->getOptions(),
+            'No options should be identified because no valid ones were passed.'
+        );
+
+        $operands = $parser->getOperands();
+        $this->assertCount(
+            1,
+            $operands,
+            'One operand passed after --.'
+        );
+        $this->assertEquals(
+            'an-operand',
+            $operands[0]
+        );
     }
 
     public function testParseUnknownOption()
@@ -136,12 +168,16 @@ class CommandLineParserTest extends \PHPUnit_Framework_TestCase
         $parser = new CommandLineParser(array(
             new Option('a', null),
         ));
-        $parser->parse('-a b');
+        $parser->parse('-a - b');
 
         $options = $parser->getOptions();
         $this->assertEquals(1, $options['a']);
         $operands = $parser->getOperands();
-        $this->assertCount(1, $operands);
+        $this->assertCount(
+            1,
+            $operands,
+            var_export($operands, true)
+        );
         $this->assertEquals('b', $operands[0]);
     }
 
@@ -197,7 +233,7 @@ class CommandLineParserTest extends \PHPUnit_Framework_TestCase
         $parser = new CommandLineParser(array(
             new Option('o', 'option', Getopt::NO_ARGUMENT)
         ));
-        $parser->parse('--option something');
+        $parser->parse('--option -- something');
 
         $options = $parser->getOptions();
         $this->assertEquals(1, $options['option']);
@@ -223,7 +259,7 @@ class CommandLineParserTest extends \PHPUnit_Framework_TestCase
         $parser = new CommandLineParser(array(
             new Option('o', 'option', Getopt::OPTIONAL_ARGUMENT)
         ));
-        $parser->parse('--option=value something');
+        $parser->parse('--option=value -- something');
 
         $options = $parser->getOptions();
         $this->assertEquals('value', $options['option']);
@@ -291,10 +327,18 @@ class CommandLineParserTest extends \PHPUnit_Framework_TestCase
         $options = $parser->getOptions();
         $this->assertEquals('0', $options['a']);
         $operands = $parser->getOperands();
-        $this->assertCount(3, $operands);
-        $this->assertEquals('foo', $operands[0]);
-        $this->assertEquals('bar', $operands[1]);
-        $this->assertEquals('baz', $operands[2]);
+        $this->assertCount(
+            2,
+            $operands,
+            var_export($operands, true)
+        );
+        $this->assertNotContains(
+            'foo',
+            $operands,
+            '"foo" was passed before "--", so it is not considered an operand.'
+        );
+        $this->assertContains('bar', $operands);
+        $this->assertContains('baz', $operands);
     }
 
     public function testSingleHyphenValue()
@@ -328,8 +372,11 @@ class CommandLineParserTest extends \PHPUnit_Framework_TestCase
         $options = $parser->getOptions();
         $this->assertEquals('0', $options['a']);
         $operands = $parser->getOperands();
-        $this->assertCount(1, $operands);
-        $this->assertEquals('-', $operands[0]);
+        $this->assertCount(
+            0,
+            $operands,
+            'Nothing passed after "-", so no operands expected.'
+        );
     }
 
     public function testParseWithArgumentValidation()
