@@ -1,8 +1,7 @@
 {
-    "name": "tflori/getopt-php",
+    "name": "augustohp/getopt-php",
     "type": "library",
     "description": "Command line arguments parser for PHP 5.3 - 7.1",
-    "homepage": "http://ulrichsg.github.io/getopt-php",
     "license": "MIT",
     "authors": [
         {
